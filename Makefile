@@ -27,12 +27,12 @@ SRCDIR  = src
 INCDIR  = include
 BINDIR  = bin
 RESDIR  = res
-GENDIR  = gen
+GENDIR  = assets
 OBJDIR  = obj
 LIBDIR  = lib
 
 WARNINGS = all extra
-ASFLAGS  = -p ${PADVALUE} $(addprefix -W,${WARNINGS}) -P src/tools/mkutils/macros.inc
+ASFLAGS  = -p ${PADVALUE} $(addprefix -W,${WARNINGS}) -D VWF_CFG_FILE=$(VWF_CFG_FILE) -P src/tools/mkutils/macros.inc
 LDFLAGS  = -p ${PADVALUE}
 FIXFLAGS = -p ${PADVALUE} -i "${GAMEID}" -k "${LICENSEE}" -l ${OLDLIC} -m ${MBC} -n ${VERSION} -r ${SRAMSIZE} -t ${TITLE}
 
@@ -50,6 +50,7 @@ bin: ${ROM}
 # The list of ASM files that RGBASM will be invoked on.
 SRCS = $(call rwildcard,$(SRCDIR),*.asm)
 INCS = $(call rwildcard,$(INCDIR),*.inc)
+VWF_CFG_FILE:=$(INCDIR)/vwf_config.inc
 
 DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
 DEPS := $(filter-out include/hardware.mk,$(DEPS))
@@ -119,6 +120,9 @@ assets/%.pb8.size: assets/%
 	@mkdir -p "${@D}"
 	printf 'def NB_PB8_BLOCKS equ ((%u) + 7) / 8\n' "$$(wc -c <$<)" > assets/$*.pb8.size
 
+$(INCDIR)/%.mk:$(INCDIR)/%.asm
+	perl src/tools/mkutils/generate_dep.pl $^ ${subst ${INCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
+
 $(SRCDIR)/%.mk:$(SRCDIR)/%.asm
 	perl src/tools/mkutils/generate_dep.pl $^ ${subst ${SRCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
 
@@ -128,6 +132,17 @@ $(INCDIR)/%.mk:$(INCDIR)/%.inc
 $(OBJDIR)/%.o:$(SRCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
 	$(RGBASM) $(ASFLAGS) -o $@ ${word 1, $^}
+
+$(GENDIR)/charmap.inc:$(SRCDIR)/gb-vwf/vwf.asm
+	$(call $(MKDIR),$(GENDIR))
+	$(RGBASM) $(ASFLAGS) -DPRINT_CHARMAP $^ > $@
+
+%.vwf:%.png
+	$(VWFENCODER) $^ $@
+
+%.vwflen:%.png
+	$(VWFENCODER) $^ ${@:.vwflen=.vwf}
+
 
 # How to build a ROM.
 # Notice that the build date is always refreshed.

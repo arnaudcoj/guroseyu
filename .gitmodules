@@ -6,3 +6,7 @@
 	path = include/rgbds-structs
 	url = https://github.com/ISSOtm/rgbds-structs.git
 	ignore = untracked
+[submodule "src/gb-vwf"]
+	path = src/gb-vwf
+	url = https://github.com/ISSOtm/gb-vwf.git
+	ignore = untracked
