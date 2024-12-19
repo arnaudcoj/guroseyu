@@ -18,10 +18,10 @@ SECTION "VWF engine", ROM0
 	chars "Á", "Ä",  "Æ", "Ç", "É", "Í", "Ñ", "Ó", "Ö", "Ú", "Ü",                   "Þ", "µ"
 	chars "á", "ä",  "æ", "ç", "é", "í", "ñ", "ó", "ö", "ú", "ü",                   "þ", "ß"
 
-	font BASE_SEVEN,      src/assets/fonts/BaseSeven.vwf
-	font BASE_SEVEN_BOLD, src/assets/fonts/BaseSevenBold_vx8.vwf
-	font OPTIX,           src/assets/fonts/optix.vwf
-	font OPTIX_BOLD,      src/assets/fonts/optixBold.vwf
+	font BASE_SEVEN,      assets/fonts/BaseSeven.vwf
+	font BASE_SEVEN_BOLD, assets/fonts/BaseSevenBold_vx8.vwf
+	font OPTIX,           assets/fonts/optix.vwf
+	font OPTIX_BOLD,      assets/fonts/optixBold.vwf
 def NB_VARIANT_BITS equ 1 ; This demo only uses two variants (plain and bold) per font family.
 
 ; Custom control characters.

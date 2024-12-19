@@ -27,7 +27,7 @@ SRCDIR  = src
 INCDIR  = include
 BINDIR  = bin
 RESDIR  = res
-GENDIR  = assets
+GENDIR  = gen
 OBJDIR  = obj
 LIBDIR  = lib
 
@@ -92,32 +92,27 @@ dependencies:$(DEPS)
 	echo $(DEPS)
 .PHONY:dependencies
 
-assets/%.2bpp: assets/%.png
+assets/%.2bpp: $(SRCDIR)/assets/%.png
 	@mkdir -p "${@D}"
 	${RGBGFX} -o $@ $<
 
-assets/%.1bpp: assets/%.png
-	@mkdir -p "${@D}"
+assets/%.1bpp: $(SRCDIR)/assets/%.png
 	${RGBGFX} -d 1 -o $@ $<
 
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
 assets/%.pb16: assets/% $(SRCDIR)/tools/pb16.py
-	@mkdir -p "${@D}"
 	$(SRCDIR)/tools/pb16.py $< assets/$*.pb16
 
 assets/%.pb16.size: assets/%
-	@mkdir -p "${@D}"
 	printf 'def NB_PB16_BLOCKS equ ((%u) + 15) / 16\n' "$$(wc -c <$<)" > assets/$*.pb16.size
 
 # Define how to compress files using the PackBits8 codec
 # Compressor script requires Python 3
 assets/%.pb8: assets/% $(SRCDIR)/tools/pb8.py
-	@mkdir -p "${@D}"
-	$(SRCDIR)/tools/pb8.py $< assets/$*.pb8
+	python $(SRCDIR)/tools/pb8.py $< assets/$*.pb8
 
 assets/%.pb8.size: assets/%
-	@mkdir -p "${@D}"
 	printf 'def NB_PB8_BLOCKS equ ((%u) + 7) / 8\n' "$$(wc -c <$<)" > assets/$*.pb8.size
 
 $(INCDIR)/%.mk:$(INCDIR)/%.asm
@@ -137,10 +132,12 @@ $(GENDIR)/charmap.inc:$(SRCDIR)/gb-vwf/vwf.asm
 	$(call $(MKDIR),$(GENDIR))
 	$(RGBASM) $(ASFLAGS) -DPRINT_CHARMAP $^ > $@
 
-%.vwf:%.png
+$(GENDIR)/%.vwf:$(SRCDIR)/%.png
+	$(call $(MKDIR),$(GENDIR))
 	$(VWFENCODER) $^ $@
 
-%.vwflen:%.png
+$(GENDIR)/%.vwflen:$(SRCDIR)/%.png
+	$(call $(MKDIR),$(GENDIR))
 	$(VWFENCODER) $^ ${@:.vwflen=.vwf}
 
 
