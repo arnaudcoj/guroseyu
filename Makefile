@@ -8,6 +8,8 @@ ifeq (${MAKE_VERSION},3.81)
 .NOTPARALLEL: # Delete this line if you want to have parallel builds regardless!
 endif
 
+include src/tools/mkutils/crossplatform.mk
+
 # Recursive `wildcard` function.
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -16,31 +18,62 @@ RGBASM  := ${RGBDS}rgbasm
 RGBLINK := ${RGBDS}rgblink
 RGBFIX  := ${RGBDS}rgbfix
 RGBGFX  := ${RGBDS}rgbgfx
+RUNNER	:= bgb
 
 ROM = bin/${ROMNAME}.${ROMEXT}
 
 # Argument constants
-INCDIRS  = src/ include/
+SRCDIR  = src
+INCDIR  = include
+BINDIR  = bin
+RESDIR  = res
+GENDIR  = gen
+OBJDIR  = obj
+LIBDIR  = lib
+
 WARNINGS = all extra
-ASFLAGS  = -p ${PADVALUE} $(addprefix -I,${INCDIRS}) $(addprefix -W,${WARNINGS})
+ASFLAGS  = -p ${PADVALUE} $(addprefix -W,${WARNINGS}) -P src/tools/mkutils/macros.inc
 LDFLAGS  = -p ${PADVALUE}
 FIXFLAGS = -p ${PADVALUE} -i "${GAMEID}" -k "${LICENSEE}" -l ${OLDLIC} -m ${MBC} -n ${VERSION} -r ${SRAMSIZE} -t ${TITLE}
-
-# The list of ASM files that RGBASM will be invoked on.
-SRCS = $(call rwildcard,src,*.asm)
 
 ## Project-specific configuration
 # Use this to override the above
 include project.mk
 
 # `all` (Default target): build the ROM
-all: ${ROM}
+all: bin
 .PHONY: all
 
-# `clean`: Clean temp and bin files
+bin: ${ROM}
+.PHONY: bin
+
+# The list of ASM files that RGBASM will be invoked on.
+SRCS = $(call rwildcard,$(SRCDIR),*.asm)
+INCS = $(call rwildcard,$(INCDIR),*.inc)
+
+DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
+DEPS := $(filter-out include/hardware.mk,$(DEPS))
+
+ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
+include $(DEPS)
+endif
+
+# `clean`: Clean obj and bin files
 clean:
-	rm -rf bin obj assets
-.PHONY: clean
+	@echo Cleaning project
+	$(call $(RMDIR),$(BINDIR))
+	$(call $(RMDIR),$(OBJDIR))
+.PHONY:clean
+
+# `clean`: Clean obj, bin and generated files
+purge:clean
+	@echo Cleaning project harder
+	$(call $(RMDIR),$(GENDIR))
+	$(call $(RMDIR),$(OBJDIR))
+	$(call $(RM), $(DEPS))
+	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwf))
+	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwflen))
+.PHONY:purge
 
 # `rebuild`: Build everything from scratch
 # It's important to do these two in order if we're using more than one job
@@ -49,11 +82,14 @@ rebuild:
 	${MAKE} all
 .PHONY: rebuild
 
+run:$(ROM)
+	@echo $(RUNNER) $(ROM)
+	@$(RUNNER) $(ROM)||:
+.PHONY:run
 
-# By default, asset recipes convert files in `assets/` into other files in `assets/`.
-# This line causes assets not found in `assets/` to be also looked for in `src/assets/`.
-# "Source" assets can thus be safely stored there without `make clean` removing them!
-VPATH := src
+dependencies:$(DEPS)
+	echo $(DEPS)
+.PHONY:dependencies
 
 assets/%.2bpp: assets/%.png
 	@mkdir -p "${@D}"
@@ -65,9 +101,9 @@ assets/%.1bpp: assets/%.png
 
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
-assets/%.pb16: assets/% src/tools/pb16.py
+assets/%.pb16: assets/% $(SRCDIR)/tools/pb16.py
 	@mkdir -p "${@D}"
-	src/tools/pb16.py $< assets/$*.pb16
+	$(SRCDIR)/tools/pb16.py $< assets/$*.pb16
 
 assets/%.pb16.size: assets/%
 	@mkdir -p "${@D}"
@@ -75,44 +111,39 @@ assets/%.pb16.size: assets/%
 
 # Define how to compress files using the PackBits8 codec
 # Compressor script requires Python 3
-assets/%.pb8: assets/% src/tools/pb8.py
+assets/%.pb8: assets/% $(SRCDIR)/tools/pb8.py
 	@mkdir -p "${@D}"
-	src/tools/pb8.py $< assets/$*.pb8
+	$(SRCDIR)/tools/pb8.py $< assets/$*.pb8
 
 assets/%.pb8.size: assets/%
 	@mkdir -p "${@D}"
 	printf 'def NB_PB8_BLOCKS equ ((%u) + 7) / 8\n' "$$(wc -c <$<)" > assets/$*.pb8.size
 
+$(SRCDIR)/%.mk:$(SRCDIR)/%.asm
+	perl src/tools/mkutils/generate_dep.pl $^ ${subst ${SRCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
+
+$(INCDIR)/%.mk:$(INCDIR)/%.inc 
+	perl src/tools/mkutils/generate_dep.pl $^ $@
+
+$(OBJDIR)/%.o:$(SRCDIR)/%.asm
+	$(call $(MKDIR),$(dir $@))
+	$(RGBASM) $(ASFLAGS) -o $@ ${word 1, $^}
 
 # How to build a ROM.
 # Notice that the build date is always refreshed.
-bin/%.${ROMEXT}: $(patsubst src/%.asm,obj/%.o,${SRCS})
-	@mkdir -p "${@D}"
-	${RGBASM} ${ASFLAGS} -o obj/build_date.o src/assets/build_date.asm
-	${RGBLINK} ${LDFLAGS} -m bin/$*.map -n bin/$*.sym -o $@ $^ \
-	&& ${RGBFIX} -v ${FIXFLAGS} $@
+bin/%.${ROMEXT}:$(OBJS)
+	$(call $(MKDIR),$(OBJDIR))
+	${RGBASM} ${ASFLAGS} -o obj/build_date.o $(SRCDIR)/assets/build_date.asm
 
-# `.mk` files are auto-generated dependency lists of the source ASM files, to save a lot of hassle.
-# Also add all obj dependencies to the dep file too, so Make knows to remake it.
-# Caution: some of these flags were added in RGBDS 0.4.0, using an earlier version WILL NOT WORK
-# (and produce weird errors).
-obj/%.mk: src/%.asm
-	@mkdir -p "${@D}"
-	${RGBASM} ${ASFLAGS} -M $@ -MG -MP -MQ ${@:.mk=.o} -MQ $@ -o ${@:.mk=.o} $<
-# DO NOT merge this with the rule above, otherwise Make will assume that the `.o` file is generated,
-# even when it isn't!
-# This causes weird issues that depend, among other things, on the version of Make.
-obj/%.o: obj/%.mk
-	@touch $@
+	$(call $(MKDIR),$(BINDIR))
 
-ifeq ($(filter clean,${MAKECMDGOALS}),)
-include $(patsubst src/%.asm,obj/%.mk,${SRCS})
-endif
+	${RGBLINK} ${LDFLAGS} -m bin/$*.map -n bin/$*.sym -o $@ $(OBJS)
+	${RGBFIX} -v ${FIXFLAGS} $@
 
 # By default, cloning the repo does not init submodules; if that happens, warn the user.
 # Note that the real paths aren't used!
 # Since RGBASM fails to find the files, it outputs the raw paths, not the actual ones.
-hardware.inc/hardware.inc rgbds-structs/structs.asm:
+$(INCDIR)/hardware.inc/hardware.inc $(INCDIR)/rgbds-structs/structs.asm:
 	@echo '$@ is not present; have you initialized submodules?'
 	@echo 'Run `git submodule update --init`, then `make clean`, then `make` again.'
 	@echo 'Tip: to avoid this, use `git clone --recursive` next time!'

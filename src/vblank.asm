@@ -1,5 +1,5 @@
 
-INCLUDE "defines.asm"
+INCLUDE "include/defines.inc"
 
 SECTION "VBlank handler stub", ROM0[$40]
 

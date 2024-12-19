@@ -1,3 +1,5 @@
 /bin/
 /obj/
 /assets/
+*.mk
+!src/tools/mkutils/crossplatform.mk

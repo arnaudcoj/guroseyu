@@ -1,5 +1,5 @@
 
-INCLUDE "defines.asm"
+INCLUDE "include/defines.inc"
 
 	newcharmap crash_handler
 def CHARS equs "0123456789ABCDEF-GHIJKLMNOPQR:SUVWXYZabcdefghijklmnopqrTstuvwxyz! "

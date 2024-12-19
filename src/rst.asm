@@ -1,5 +1,5 @@
 
-INCLUDE "defines.asm"
+INCLUDE "include/defines.inc"
 
 SECTION "Rst $00", ROM0[$00]
 

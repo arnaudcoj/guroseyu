@@ -1,4 +1,3 @@
-
 SECTION "Intro", ROMX
 
 Intro::

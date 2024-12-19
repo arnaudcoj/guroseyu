@@ -1,7 +1,7 @@
 
-INCLUDE "defines.asm"
+INCLUDE "include/defines.inc"
 
-INCLUDE "misc/rand.inc"
+INCLUDE "src/misc/rand.inc"
 EXPORT randstate ; Defined in the above, exported here to avoid touching the file
 
 SECTION "LCDMemsetSmallFromB", ROM0

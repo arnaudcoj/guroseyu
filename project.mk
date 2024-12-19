@@ -39,6 +39,8 @@ SRAMSIZE := 0x00
 ROMNAME := boilerplate
 ROMEXT  := gb
 
+# Main OBJ file
+MAINOBJ := obj/header.o
 
 # Compilation parameters, uncomment to apply, comment to cancel.
 # "Sensible defaults" are included.

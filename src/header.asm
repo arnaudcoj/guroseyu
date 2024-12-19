@@ -1,6 +1,10 @@
+INCLUDE "include/defines.inc"
 
-INCLUDE "defines.asm"
-
+USING "obj/assets/build_date.o"
+USING "obj/intro.o"
+USING "obj/rst.o"
+USING "obj/vblank.o"
+USING "obj/crash_handler.o"
 
 SECTION "Header", ROM0[$100]
 
