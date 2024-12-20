@@ -148,7 +148,6 @@ SECTION UNION "Shadow OAM", WRAM0,ALIGN[8]
 wShadowOAM::
 	ds NB_SPRITES * 4
 
-
 SECTION "Stack", WRAM0
 
 wStack:
