@@ -6,3 +6,6 @@ Intro::
 
 ; Put your code here!
 	jr @
+
+ClearTextbox::
+    

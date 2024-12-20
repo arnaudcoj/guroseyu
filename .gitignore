@@ -3,3 +3,5 @@
 /assets/
 *.mk
 !src/tools/mkutils/crossplatform.mk
+tools/gb-vwf
+
