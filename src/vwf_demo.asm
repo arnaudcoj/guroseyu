@@ -180,10 +180,10 @@ PerformAnimation:
 	bit 7, [hl]
 	ld a, SCRN_Y + 16
 	jr z, .notWaiting
-	ldh a, [hHeldButtons]
+	ldh a, [hHeldKeys]
 	bit PADB_B, a
 	jr nz, .stopWaiting
-	ldh a, [hPressedButtons]
+	ldh a, [hPressedKeys]
 	bit PADB_A, a
 	jr z, .keepWaiting
 .stopWaiting
@@ -221,7 +221,7 @@ PerformAnimation:
 
 .waitRestart
 	rst WaitVBlank
-	ldh a, [hPressedButtons]
+	ldh a, [hPressedKeys]
 	and PADF_START
 	jr z, .waitRestart
 	jp .restartText
@@ -291,7 +291,7 @@ ClearTextbox::
 
 
 SECTION "VWF Demo", ROM0
-EntryPoint:
+VWFEntryPoint::
 	; Clear tilemap
 	ld hl, _SCRN0
 	ld de, SCRN_VX_B - SCRN_X_B
@@ -316,13 +316,14 @@ ENDR
 	ldh [rBGP], a
 	ldh [rOBP0], a
 	ld a, LCDCF_ON | LCDCF_BGON
+	ldh [hLCDC], a
 	ldh [rLCDC], a
 
 	; Init interrupt handler vars
 	xor a
 	ldh [hVBlankFlag], a
 	dec a ; ld a, $FF
-	ldh [hHeldButtons], a
+	ldh [hHeldKeys], a
 
 	ld hl, OAMDMA
 	lb bc, OAMDMA.end - OAMDMA, LOW(hOAMDMA)
@@ -411,6 +412,7 @@ ENDR
 	; Assuming OAM has correctly been written, start displaying sprites
 	ld a, LCDCF_ON | LCDCF_OBJON | LCDCF_OBJ16 | LCDCF_BGON
 	ldh [rLCDC], a
+	ldh [hLCDC], a
 
 
 	;;;;;;;;;;;;;;;; TEXT ENGINE GLOBAL INIT ;;;;;;;;;;;;;;;;;;;;
@@ -435,18 +437,18 @@ ENDR
 
 .tiles
 .buttonTiles
-INCBIN "res/button.2bpp"
+INCBIN "assets/button.2bpp"
 def NB_BUTTON_TILES equ (@ - .buttonTiles) / 16
 def NB_BUTTON_SPRITES equ NB_BUTTON_TILES / 2
 
 .borderTopTiles
-INCBIN "res/border_top.2bpp"
+INCBIN "assets/border_top.2bpp"
 def NB_BORDER_TOP_TILES equ (@ - .borderTopTiles) / 16
 .borderVertTiles
-INCBIN "res/border_vert.2bpp"
+INCBIN "assets/border_vert.2bpp"
 def NB_BORDER_VERT_TILES equ (@ - .borderVertTiles) / 16
 .borderBottomTiles
-INCBIN "res/border_bottom.2bpp"
+INCBIN "assets/border_bottom.2bpp"
 def NB_BORDER_BOTTOM_TILES equ (@ - .borderBottomTiles) / 16
 
 .tilesEnd
@@ -686,18 +688,3 @@ SECTION "WRAM0", WRAM0
 
 wBtnAnimCounter:
 	db
-
-
-SECTION "HRAM", HRAM
-
-; hCurROMBank::
-; 	db
-
-hVBlankFlag:
-	db
-hHeldButtons::
-	db
-hPressedButtons::
-	db
-hOAMDMA:
-	ds OAMDMA.end - OAMDMA

@@ -3,8 +3,10 @@
 ifeq ($(OS), Windows_NT)
 	SYS=win
 	SHELL:=cmd.exe
+	EXE:=.exe
 else # assume it's a unix environment
 	SYS=unix
+	EXE:=
 	# Use system shell
 endif
 
@@ -35,7 +37,7 @@ define mkdir_win
 endef
 
 define cp_unix
-	@cp $1 $2
+	@cp -f $1 $2
 endef
 
 define cp_win

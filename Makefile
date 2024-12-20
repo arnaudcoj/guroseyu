@@ -17,7 +17,6 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 SRCDIR  = src
 INCDIR  = include
 BINDIR  = bin
-RESDIR  = res
 GENDIR  = assets
 OBJDIR  = obj
 LIBDIR  = lib
@@ -28,7 +27,8 @@ RGBASM  := ${RGBDS}rgbasm
 RGBLINK := ${RGBDS}rgblink
 RGBFIX  := ${RGBDS}rgbfix
 RGBGFX  := ${RGBDS}rgbgfx
-VWFENCODER:= $(TOOLSDIR)/gb-vwf/font_encoder
+VWFENCODER:= $(TOOLSDIR)/gb-vwf/font_encoder$(EXE)
+PRINTF := echo
 RUNNER	:= bgb
 
 ROM = bin/${ROMNAME}.${ROMEXT}
@@ -113,7 +113,7 @@ assets/%.pb16: assets/% $(SRCDIR)/tools/pb16.py
 
 assets/%.pb16.size: assets/%
 	$(call $(MKDIR),$(dir $@))
-	printf 'def NB_PB16_BLOCKS equ ((%u) + 15) / 16\n' "$$(wc -c <$<)" > assets/$*.pb16.size
+	python src/tools/pb16_size.py $< > assets/$*.pb16.size
 
 # Define how to compress files using the PackBits8 codec
 # Compressor script requires Python 3
@@ -123,7 +123,7 @@ assets/%.pb8: assets/% $(SRCDIR)/tools/pb8.py
 
 assets/%.pb8.size: assets/%
 	$(call $(MKDIR),$(dir $@))
-	printf 'def NB_PB8_BLOCKS equ ((%u) + 7) / 8\n' "$$(wc -c <$<)" > assets/$*.pb8.size
+	python src/tools/pb8_size.py $< > assets/$*.pb8.size
 
 $(INCDIR)/%.mk:$(INCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
@@ -145,11 +145,11 @@ $(GENDIR)/charmap.inc:$(SRCDIR)/gb-vwf/vwf.asm
 	$(call $(MKDIR),$(GENDIR))
 	$(RGBASM) $(ASFLAGS) -DPRINT_CHARMAP $^ > $@
 
-assets/%.vwf:$(SRCDIR)/assets/%.png tools/gb-vwf/font_encoder
+assets/%.vwf:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $@
 
-assets/%.vwflen:$(SRCDIR)/assets/%.png tools/gb-vwf/font_encoder
+assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $(@:.vwflen=.vwf)
 
@@ -164,13 +164,13 @@ bin/%.${ROMEXT}:$(OBJS)
 	${RGBLINK} ${LDFLAGS} -m bin/$*.map -n bin/$*.sym -o $@ $(OBJS)
 	${RGBFIX} -v ${FIXFLAGS} $@
 
-$(VWFENCODER):$(SRCDIR)/gb-vwf/target/release/font_encoder
+$(VWFENCODER):$(SRCDIR)/gb-vwf/target/release/font_encoder$(EXE)
 	$(call $(MKDIR),$(dir $@))
-	cp -f $^ $@
+	$(call $(CP),$^,$@)
 
-$(SRCDIR)/gb-vwf/target/release/font_encoder:$(SRCDIR)/gb-vwf/font_encoder/Cargo.toml
+# TODO ask to install rust and gcc/mingw if needed
+$(SRCDIR)/gb-vwf/target/release/font_encoder$(EXE):$(SRCDIR)/gb-vwf/font_encoder/Cargo.toml
 	cargo build --release --manifest-path=$^
-
 
 # By default, cloning the repo does not init submodules; if that happens, warn the user.
 # Note that the real paths aren't used!
