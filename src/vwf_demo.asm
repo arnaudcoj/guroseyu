@@ -213,6 +213,10 @@ PerformAnimation:
 	dec c
 	jr nz, .toggleBtnFrame
 .noBtnAnim
+	
+	; request dma update
+	ld a, h ; ld a, HIGH(wShadowOAM)
+	ldh [hOAMHigh], a
 
 
 	ld a, [wSourceStack.len]
@@ -310,30 +314,16 @@ ENDR
 	jr nz, .clearTilemap
 	; Init LCD regs
 	; xor a ; ld a, 0
-	ldh [rSCY], a
-	ldh [rSCX], a
+	ldh [hSCY], a
+	ldh [hSCX], a
 	ld a, %11100100
-	ldh [rBGP], a
-	ldh [rOBP0], a
+	ldh [hBGP], a
+	ldh [hOBP0], a
 	ld a, LCDCF_ON | LCDCF_BGON
 	ldh [hLCDC], a
 	ldh [rLCDC], a
 
-	; Init interrupt handler vars
-	xor a
-	ldh [hVBlankFlag], a
-	dec a ; ld a, $FF
-	ldh [hHeldKeys], a
-
-	ld hl, OAMDMA
-	lb bc, OAMDMA.end - OAMDMA, LOW(hOAMDMA)
-.copyOAMDMA
-	ld a, [hli]
-	ldh [c], a
-	inc c
-	dec b
-	jr nz, .copyOAMDMA
-
+.initoam
 	; Init OAM
 	ld hl, wShadowOAM
 	ld de, .sprites
@@ -343,20 +333,20 @@ ENDR
 	ld c, NB_UNUSED_SPRITES * sizeof_OAM_ATTRS
 	xor a ; ld a, 0
 	rst MemsetSmall
+	ld a, h ; ld a, HIGH(wShadowOAM)
+	ldh [hOAMHigh], a
 
-
+	assert .spritesEnd == .tiles
+	; ld de, .tiles
+	ld hl, vButtonTiles
+	ld bc, (.tilesEnd - .tiles)
+	call LCDMemcpy
+	
 	ld a, IEF_VBLANK
 	ldh [rIE], a
 	xor a
 	ei
 	ldh [rIF], a
-
-
-	assert .spritesEnd == .tiles
-	; ld de, .tiles
-	ld hl, vButtonTiles
-	ld bc, (.tilesEnd - .tiles) / 2
-	call LCDMemcpy
 
 	ld hl, vTextboxTopRow
 	lb bc, LOW(vBorderTiles.top / 16), NB_BORDER_TOP_TILES
@@ -411,9 +401,16 @@ ENDR
 
 	; Assuming OAM has correctly been written, start displaying sprites
 	ld a, LCDCF_ON | LCDCF_OBJON | LCDCF_OBJ16 | LCDCF_BGON
-	ldh [rLCDC], a
 	ldh [hLCDC], a
+	ldh [rLCDC], a
 
+	; Enable audio
+	ld a, AUDENA_ON
+	ldh [rNR52], a
+	ld a, $FF
+	ldh [rNR51], a
+	ld a, $77
+	ldh [rNR50], a
 
 	;;;;;;;;;;;;;;;; TEXT ENGINE GLOBAL INIT ;;;;;;;;;;;;;;;;;;;;
 
@@ -452,17 +449,6 @@ INCBIN "assets/border_bottom.2bpp"
 def NB_BORDER_BOTTOM_TILES equ (@ - .borderBottomTiles) / 16
 
 .tilesEnd
-
-
-OAMDMA:
-	ldh [rDMA], a
-	ld a, OAM_COUNT
-.wait
-	dec a
-	jr nz, .wait
-	ret
-.end
-
 
 ; SECTION "LCDMemcpy", ROM0
 
