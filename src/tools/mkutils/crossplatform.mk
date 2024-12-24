@@ -46,11 +46,11 @@ define cp_win
 endef
 
 define cat_unix
-	cat $1
+	$(shell cat $1)
 endef
 
 define cat_win
-	type $(subst /,\,$1)
+	$(shell type $(subst /,\,$1))
 endef
 
 define exists_unix

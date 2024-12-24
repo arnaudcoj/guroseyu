@@ -67,7 +67,3 @@ MAINOBJ := obj/header.o
 
 # 32k mode.
 # LDFLAGS += -t
-
-# TODO create a meta system to avoid adding custom rules
-assets/button.2bpp:src/assets/button.png
-	$(RGBGFX) -Z -o $@ $<

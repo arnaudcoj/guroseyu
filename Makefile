@@ -99,7 +99,7 @@ dependencies:$(DEPS)
 
 assets/%.2bpp: $(SRCDIR)/assets/%.png
 	$(call $(MKDIR),$(dir $@))
-	${RGBGFX} -o $@ $<
+	${RGBGFX} $(call $(CAT),$<.meta) -o $@ $<
 
 assets/%.1bpp: $(SRCDIR)/assets/%.png
 	$(call $(MKDIR),$(dir $@))
