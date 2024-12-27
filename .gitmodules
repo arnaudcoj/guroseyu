@@ -10,3 +10,7 @@
 	path = src/gb-vwf
 	url = https://github.com/ISSOtm/gb-vwf.git
 	ignore = untracked
+[submodule "modules/hUGEDriver"]
+	path = modules/hUGEDriver
+	url = git@github.com:SuperDisk/hUGEDriver.git
+	ignore = untracked
