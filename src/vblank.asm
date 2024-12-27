@@ -1,5 +1,7 @@
 
 INCLUDE "include/defines.inc"
+	
+USING "obj/hUGEDriver/hUGEDriver.o"
 
 SECTION "VBlank handler stub", ROM0[$40]
 
@@ -33,6 +35,20 @@ VBlankHandler:
 	xor a
 	ldh [hOAMHigh], a
 .noOAMTransfer
+
+	push bc
+	push de
+	push hl
+
+	ld a, BANK(sample_song)
+	ldh [hCurROMBank], a ; For interrupt safety, the HRAM variable *must* be updated BEFORE the actual switch!
+	ld [rROMB0], a
+
+	call hUGE_dosound
+
+	pop hl
+	pop de
+	pop bc
 
 	; Put all operations that cannot be interrupted above this line
 	; For example, OAM DMA (can't jump to ROM in the middle of it),

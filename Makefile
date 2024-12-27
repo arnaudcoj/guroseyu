@@ -58,6 +58,8 @@ VWF_CFG_FILE:=$(INCDIR)/vwf_config.inc
 DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
 DEPS := $(filter-out include/hardware.mk,$(DEPS))
 
+OBJS:=$(OBJDIR)/hUGEDriver/hUGEDriver.o $(OBJDIR)/hUGEDriver/rgbds_example/sample_song.o
+
 ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
 include $(DEPS)
 endif
@@ -152,6 +154,10 @@ assets/%.vwf:$(SRCDIR)/assets/%.png $(VWFENCODER)
 assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $(@:.vwflen=.vwf)
+
+$(OBJDIR)/hUGEDriver/%.o:modules/hUGEDriver/%.asm
+	$(call $(MKDIR),$(dir $@))
+	$(RGBASM) $(ASFLAGS) -Imodules/hUGEDriver/ -o $@ $<
 
 # How to build a ROM.
 # Notice that the build date is always refreshed.

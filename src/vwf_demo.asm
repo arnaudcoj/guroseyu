@@ -1,8 +1,12 @@
 INCLUDE "include/hardware.inc/hardware.inc"
 INCLUDE "assets/charmap.inc"
-	setcharmap vwf
 
-	rev_Check_hardware_inc 4.0
+using "obj/hUGEDriver/hUGEDriver.o"
+using "obj/hUGEDriver/rgbds_example/sample_song.o"
+
+setcharmap vwf
+
+rev_Check_hardware_inc 4.0
 
 
 def TEXT_WIDTH_TILES equ 16
@@ -296,6 +300,14 @@ ClearTextbox::
 
 SECTION "VWF Demo", ROM0
 VWFEntryPoint::
+	; Init audio
+	ld a, BANK(sample_song)
+	ldh [hCurROMBank], a ; For interrupt safety, the HRAM variable *must* be updated BEFORE the actual switch!
+	ld [rROMB0], a
+	
+	ld hl, sample_song
+    call hUGE_init
+	
 	; Clear tilemap
 	ld hl, _SCRN0
 	ld de, SCRN_VX_B - SCRN_X_B
