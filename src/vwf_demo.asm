@@ -6,7 +6,7 @@ using "obj/hUGEDriver/rgbds_example/sample_song.o"
 
 setcharmap vwf
 
-rev_Check_hardware_inc 4.0
+	rev_Check_hardware_inc 4.0
 
 
 def TEXT_WIDTH_TILES equ 16
@@ -160,6 +160,7 @@ PerformAnimation:
 .loop
 	rst WaitVBlank
 
+	call Far_hUGE_dosound
 	call Far_TickVWFEngine
 	call PrintVWFChars
 
@@ -229,85 +230,14 @@ PerformAnimation:
 
 .waitRestart
 	rst WaitVBlank
+	call Far_hUGE_dosound
 	ldh a, [hPressedKeys]
 	and PADF_START
 	jr z, .waitRestart
 	jp .restartText
 
-
-SECTION "VWF engine additions", ROM0
-
-Far_TickVWFEngine:
-	ldh a, [hCurROMBank]
-	push af
-	call TickVWFEngine
-	pop af
-	ldh [hCurROMBank], a
-	ld [rROMB0], a
-	ret
-
-ClearTextbox::
-	; Load the textbox's origin, and reset the "printer head" to point there.
-	ld hl, wTextbox.origin
-	ld a, [hli]
-	ld [wPrinterHeadPtr], a
-	ld h, [hl]
-	ld l, a
-	ld a, h
-	ld [wPrinterHeadPtr + 1], a
-
-	ld a, [wTextbox.width]
-	ld [wLookahead.nbTilesRemaining], a
-	ld a, [wTextbox.height]
-	ld [wNbLinesRemaining], a ; Reset this, since we're resetting the "print head" as well.
-	ld [wNbLinesRead], a ; Same.
-
-	; Clear the textbox.
-	ld b, a
-.clearRow
-	ld a, [wTextbox.width]
-	ld c, a
-.clear
-	ldh a, [rSTAT]
-	and STATF_BUSY
-	jr nz, .clear
-	; a = 0 here.
-	ld [hli], a
-	dec c
-	jr nz, .clear
-	ld a, [wTextbox.width]
-	cpl
-	add SCRN_VX_B + 1 ; a = SCRN_VX_B - [wTextbox.width]
-	add a, l
-	ld l, a
-	adc a, h
-	sub l
-	ld h, a
-	dec b
-	jr nz, .clearRow
-
-	; Ensure we'll start printing to a new tile.
-	ld hl, wTileBuffer
-	assert wTileBuffer.end == wNbPixelsDrawn
-	ld c, wTileBuffer.end - wTileBuffer + 1
-	xor a
-.clearTileBuffer
-	ld [hli], a
-	dec c
-	jr nz, .clearTileBuffer
-	ret
-
-
 SECTION "VWF Demo", ROM0
 VWFEntryPoint::
-	; Init audio
-	ld a, BANK(sample_song)
-	ldh [hCurROMBank], a ; For interrupt safety, the HRAM variable *must* be updated BEFORE the actual switch!
-	ld [rROMB0], a
-	
-	ld hl, sample_song
-    call hUGE_init
-	
 	; Clear tilemap
 	ld hl, _SCRN0
 	ld de, SCRN_VX_B - SCRN_X_B
@@ -423,6 +353,14 @@ ENDR
 	ldh [rNR51], a
 	ld a, $77
 	ldh [rNR50], a
+	
+	; Load song
+	ld a, BANK(sample_song)
+	ld hl, sample_song
+	ldh [hMusicROMBank], a
+	ldh [hCurROMBank], a
+	ld [rROMB0], a
+    call hUGE_init
 
 	;;;;;;;;;;;;;;;; TEXT ENGINE GLOBAL INIT ;;;;;;;;;;;;;;;;;;;;
 

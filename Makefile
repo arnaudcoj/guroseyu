@@ -59,6 +59,7 @@ DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
 DEPS := $(filter-out include/hardware.mk,$(DEPS))
 
 OBJS:=$(OBJDIR)/hUGEDriver/hUGEDriver.o $(OBJDIR)/hUGEDriver/rgbds_example/sample_song.o
+OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
 
 ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
 include $(DEPS)
@@ -154,6 +155,10 @@ assets/%.vwf:$(SRCDIR)/assets/%.png $(VWFENCODER)
 assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $(@:.vwflen=.vwf)
+
+$(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm
+	$(call $(MKDIR),$(dir $@))
+	$(RGBASM) $(ASFLAGS) -Imodules/vgm2asm/ -o $@ $<
 
 $(OBJDIR)/hUGEDriver/%.o:modules/hUGEDriver/%.asm
 	$(call $(MKDIR),$(dir $@))

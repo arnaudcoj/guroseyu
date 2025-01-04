@@ -1,7 +1,7 @@
 INCLUDE "include/defines.inc"
 
 USING "obj/assets/build_date.o"
-USING "obj/intro.o"
+USING "obj/main.o"
 USING "obj/rst.o"
 USING "obj/vblank.o"
 USING "obj/crash_handler.o"
@@ -57,7 +57,7 @@ Reset::
 	jr nz, .copyOAMDMA
 
 	WARN "Edit to set palettes here"
-	ld a, %11100100
+	ld a, %11111100
 	ld [hBGP], a
 	; CGB palettes maybe, DMG ones always
 
