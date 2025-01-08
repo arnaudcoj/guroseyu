@@ -2,6 +2,6 @@
 /obj/
 /assets/
 *.mk
-!src/tools/mkutils/crossplatform.mk
+!modules/mkutils/crossplatform.mk
 tools/gb-vwf
 
