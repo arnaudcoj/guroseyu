@@ -2,7 +2,7 @@ INCLUDE "include/hardware.inc/hardware.inc"
 INCLUDE "assets/charmap.inc"
 
 using "obj/audio.o"
-using "obj/pipe_de_bois.o"
+using "obj/assets/pipe_de_bois.o"
 
 setcharmap vwf
 

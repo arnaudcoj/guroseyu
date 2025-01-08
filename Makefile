@@ -8,7 +8,7 @@ ifeq (${MAKE_VERSION},3.81)
 .NOTPARALLEL: # Delete this line if you want to have parallel builds regardless!
 endif
 
-include src/tools/mkutils/crossplatform.mk
+include modules/mkutils/crossplatform.mk
 
 # Recursive `wildcard` function.
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
@@ -35,7 +35,7 @@ ROM = bin/${ROMNAME}.${ROMEXT}
 
 
 WARNINGS = all extra
-ASFLAGS  = -p ${PADVALUE} $(addprefix -W,${WARNINGS}) -D VWF_CFG_FILE=$(VWF_CFG_FILE) -P src/tools/mkutils/macros.inc
+ASFLAGS  = -p ${PADVALUE} $(addprefix -W,${WARNINGS}) -D VWF_CFG_FILE=$(VWF_CFG_FILE) -P modules/mkutils/macros.inc
 LDFLAGS  = -p ${PADVALUE}
 FIXFLAGS = -p ${PADVALUE} -i "${GAMEID}" -k "${LICENSEE}" -l ${OLDLIC} -m ${MBC} -n ${VERSION} -r ${SRAMSIZE} -t ${TITLE}
 
@@ -77,7 +77,11 @@ purge:clean
 	@echo Cleaning project harder
 	$(call $(RMDIR),$(GENDIR))
 	$(call $(RMDIR),$(OBJDIR))
-	$(call $(RM), $(DEPS))
+	$(call $(RM), $(call rwildcard,$(SRCDIR),*.mk))
+	$(call $(RM), $(call rwildcard,$(INCDIR),*.mk))
+	$(call $(RM), $(call rwildcard,modules/hUGEDriver,*.mk))
+	$(call $(RM), $(call rwildcard,modules/vgm2asm,*.mk))
+	$(call $(RM), $(call rwildcard,$(INCDIR),*.mk))
 	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwf))
 	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwflen))
 .PHONY:purge
@@ -134,15 +138,15 @@ assets/%.pb8.size: assets/%
 
 $(INCDIR)/%.mk:$(INCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
-	perl src/tools/mkutils/generate_dep.pl $^ ${subst ${INCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
+	perl modules/mkutils/generate_dep.pl $^ ${subst ${INCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
 
 $(SRCDIR)/%.mk:$(SRCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
-	perl src/tools/mkutils/generate_dep.pl $^ ${subst ${SRCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
+	perl modules/mkutils/generate_dep.pl $^ ${subst ${SRCDIR}, ${OBJDIR}, ${@:.mk=.o}} $@
 
 $(INCDIR)/%.mk:$(INCDIR)/%.inc 
 	$(call $(MKDIR),$(dir $@))
-	perl src/tools/mkutils/generate_dep.pl $^ $@
+	perl modules/mkutils/generate_dep.pl $^ $@
 
 $(OBJDIR)/%.o:$(SRCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
