@@ -58,7 +58,7 @@ VWF_CFG_FILE:=$(INCDIR)/vwf_config.inc
 DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
 DEPS := $(filter-out include/hardware.mk,$(DEPS))
 
-OBJS:=$(OBJDIR)/hUGEDriver/hUGEDriver.o $(OBJDIR)/hUGEDriver/rgbds_example/sample_song.o
+OBJS:=$(OBJDIR)/hUGEDriver/hUGEDriver.o
 OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
 
 ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
@@ -80,8 +80,12 @@ purge:clean
 	$(call $(RM), $(DEPS))
 	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwf))
 	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwflen))
-	$(call $(RMDIR), $(dir $(VWFENCODER)))
+.PHONY:purge
+
+purgeHARDER:purge
+	@echo HARDER!!!
 	$(call $(RMDIR), $(SRCDIR)/gb-vwf/target/)
+	$(call $(RMDIR), $(dir $(VWFENCODER)))
 .PHONY:purge
 
 # `rebuild`: Build everything from scratch

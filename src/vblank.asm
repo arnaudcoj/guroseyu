@@ -1,7 +1,7 @@
 
 INCLUDE "include/defines.inc"
 	
-USING "obj/hUGEDriver/hUGEDriver.o"
+USING "audio.o"
 
 SECTION "VBlank handler stub", ROM0[$40]
 
@@ -35,6 +35,24 @@ VBlankHandler:
 	xor a
 	ldh [hOAMHigh], a
 .noOAMTransfer
+	
+.music
+; Check if should handle music
+	ldh a, [hAudioState]
+	and MUSIC_VBLANK
+	jr z, .endmusic
+
+	push bc
+	push de
+	push hl
+
+    call Music_tick
+
+	pop hl
+	pop de
+	pop bc
+	
+.endmusic
 
 	; Put all operations that cannot be interrupted above this line
 	; For example, OAM DMA (can't jump to ROM in the middle of it),

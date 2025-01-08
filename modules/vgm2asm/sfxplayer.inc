@@ -105,18 +105,3 @@ macro sfx_reset_sample
     ld [sfx_play_sample], a
     ld [sfx_play_sample + 1], a
 endm
-
-; start playing SFX
-macro sfx_set_sample ; (uint8_t bank, const uint8_t * sample) {
-    xor a
-    ld [sfx_frame_skip], a
-    
-    ld a, BANK(\1)
-    ld [sfx_play_bank], a
-    
-    ld a, LOW(\1)
-    ld [sfx_play_sample], a
-    ld a, HIGH(\1)
-    ld [sfx_play_sample + 1], a
-    
-endm

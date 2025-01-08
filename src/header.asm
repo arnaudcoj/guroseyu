@@ -4,6 +4,8 @@ USING "obj/assets/build_date.o"
 USING "obj/main.o"
 USING "obj/rst.o"
 USING "obj/vblank.o"
+USING "obj/timer.o"
+USING "obj/audio.o"
 USING "obj/crash_handler.o"
 
 SECTION "Header", ROM0[$100]
@@ -30,6 +32,12 @@ Reset::
 	; Kill sound
 	xor a
 	ldh [rNR52], a
+	
+	; Reset Audio
+	xor a
+	ldh [hMusicTick], a
+	ldh [hAudioState], a
+
 
 	; Wait for VBlank and turn LCD off
 .waitVBlank
@@ -84,9 +92,15 @@ Reset::
 	ldh [hCurROMBank], a
 	ld [rROMB0], a
 
+	; Setup TIMA clock to 256Hz
+	ld a, TAC_4096_8192
+	ldh [rTAC], a
+	ld a, TMA_SIMPLE_SPEED 
+	ldh [rTMA], a
+
 	; Select wanted interrupts here
 	; You can also enable them later if you want
-	ld a, IEF_VBLANK
+	ld a, IEF_VBLANK | IEF_TIMER
 	ldh [rIE], a
 	xor a
 	ei ; Only takes effect after the following instruction
