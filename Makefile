@@ -110,13 +110,15 @@ dependencies:$(DEPS)
 	echo $(DEPS)
 .PHONY:dependencies
 
-assets/%.2bpp: $(SRCDIR)/assets/%.png
+.SECONDEXPANSION:
+assets/%.2bpp: $(SRCDIR)/assets/%.png $$(wildcard $(SRCDIR)/%.png.meta)
 	$(call $(MKDIR),$(dir $@))
 	${RGBGFX} $(call $(CAT),$<.meta) -o $@ $<
 
-assets/%.1bpp: $(SRCDIR)/assets/%.png
+.SECONDEXPANSION:
+assets/%.1bpp: $(SRCDIR)/assets/%.png $$(wildcard $(SRCDIR)/%.png.meta)
 	$(call $(MKDIR),$(dir $@))
-	${RGBGFX} -d 1 -o $@ $<
+	${RGBGFX} -d 1 $(call $(CAT),$<.meta) -o $@ $<
 
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
@@ -166,8 +168,8 @@ assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $(@:.vwflen=.vwf)
 
-#$(SRCDIR)/%.asm:$(SRCDIR)/%.vgm $$(wildcard $(SRCDIR)/%.vgm.meta)
-$(SRCDIR)/%.asm:$(SRCDIR)/%.vgm
+.SECONDEXPANSION:
+$(SRCDIR)/%.asm:$(SRCDIR)/%.vgm $$(wildcard $(SRCDIR)/%.vgm.meta)
 	python modules/vgm2asm/vgm2asm.py $(call $(CAT),$<.meta) -o $@ $<
 
 $(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm
