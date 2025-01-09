@@ -37,6 +37,8 @@ Reset::
 	xor a
 	ldh [hMusicTick], a
 	ldh [hAudioState], a
+	cpl
+	ld [wSFXPriority], a
 
 
 	; Wait for VBlank and turn LCD off

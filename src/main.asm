@@ -41,19 +41,30 @@ Loop:
 .music_switch
 	ldh a, [hPressedKeys]
 	and PADF_SELECT
-	jr z, .check_sfx ; skip if not pressed
+	jr z, .check_sfx_A ; skip if not pressed
 
 	ldh a, [hAudioState]
 	xor MUSIC_VBLANK
 	ldh [hAudioState], a
 	
-.check_sfx
+.check_sfx_A
 	ldh a, [hPressedKeys]
 	and PADF_A
-	jr z, Loop ; skip if not pressed
+	jr z, .check_sfx_B ; skip if not pressed
 	
+	ld c, 127
 	ld b, BANK(sfx_Beep)
 	ld hl, sfx_Beep
+	call SFX_start
+
+.check_sfx_B
+	ldh a, [hPressedKeys]
+	and PADF_B
+	jr z, Loop ; skip if not pressed
+	
+	ld c, 255
+	ld b, BANK(sfx_Beep3)
+	ld hl, sfx_Beep3
 	call SFX_start
 
 	jr Loop

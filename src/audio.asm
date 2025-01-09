@@ -81,13 +81,27 @@ Music_release_channels::
 	
 	ret
 
-; b = bank, hl = address, TODO priority
+; b = bank, c = priority, hl = address
 SFX_start:: 
+    ld a, [hAudioState]
+    and SFX_PLAYING
+    jr z, .skip_priority_check
+
+; Check current priority vs SFX priority (0 = higher, 255 = lower)
+    ld a, [wSFXPriority]
+    cp c
+    ret c ; if (current priority < new priority) return
+.skip_priority_check
+
 ; Set State to Loading (do nothing if interrupted by a tick)
     ld a, [hAudioState]
     and ~SFX_MASK
     or SFX_LOADING
     ldh [hAudioState], a
+
+; Store Priority
+    ld a, c
+    ld [wSFXPriority], a
 
 ; Store current bank
     ldh a, [hCurROMBank]
@@ -196,6 +210,7 @@ SFX_tick::
 
 SECTION "Audio WRAM", WRAM0
     wMusicROMBank::db
+    wSFXPriority::db
 
 SECTION "Audio HRAM", HRAM 
 	hAudioState::db
