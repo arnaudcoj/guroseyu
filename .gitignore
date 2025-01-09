@@ -1,7 +1,9 @@
 /bin/
 /obj/
 /assets/
+*.uge.asm
+*.vgm.asm
 *.mk
-!modules/mkutils/crossplatform.mk
+!modules/**.mk
 tools/gb-vwf
 

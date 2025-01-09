@@ -1,7 +1,7 @@
 include "include/hardware.inc/hardware.inc"
 
-using "obj/hUGEDriver/hUGEDriver.o"
-using "obj/vgm2asm/sfxplayer.o"
+using "modules/hUGEDriver/hUGEDriver.asm"
+using "modules/vgm2asm/sfxplayer.asm"
 
 def MUSIC_VBLANK  = %10000000
     EXPORT MUSIC_VBLANK

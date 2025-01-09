@@ -1,7 +1,7 @@
 
 INCLUDE "include/defines.inc"
 	
-USING "obj/audio.o"
+USING "src/audio.asm"
 
 SECTION "VBlank handler stub", ROM0[$40]
 

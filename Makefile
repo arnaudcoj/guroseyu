@@ -27,12 +27,10 @@ RGBASM  := ${RGBDS}rgbasm
 RGBLINK := ${RGBDS}rgblink
 RGBFIX  := ${RGBDS}rgbfix
 RGBGFX  := ${RGBDS}rgbgfx
-VWFENCODER:= $(TOOLSDIR)/gb-vwf/font_encoder$(EXE)
 PRINTF := echo
 RUNNER	:= bgb
 
 ROM = bin/${ROMNAME}.${ROMEXT}
-
 
 WARNINGS = all extra
 ASFLAGS  = -p ${PADVALUE} $(addprefix -W,${WARNINGS}) -D VWF_CFG_FILE=$(VWF_CFG_FILE) -P modules/mkutils/macros.inc
@@ -51,20 +49,17 @@ bin: ${ROM}
 .PHONY: bin
 
 # The list of ASM files that RGBASM will be invoked on.
-SRCS = $(call rwildcard,$(SRCDIR),*.asm)
-INCS = $(call rwildcard,$(INCDIR),*.inc)
+# SRCS = $(call rwildcard,$(SRCDIR),*.asm)
+# INCS = $(call rwildcard,$(INCDIR),*.inc)
 VWF_CFG_FILE:=$(INCDIR)/vwf_config.inc
 
-DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
-DEPS := $(filter-out include/hardware.mk,$(DEPS))
+# DEPS = ${SRCS:.asm=.mk} ${INCS:.inc=.mk}
+# DEPS := $(filter-out include/hardware.mk,$(DEPS))
 
-OBJS:=$(OBJDIR)/hUGEDriver/hUGEDriver.o
-OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
-OBJS+=$(OBJDIR)/assets/sound_effect1.o
-OBJS+=$(OBJDIR)/assets/sound_effect3.o
+OBJS:=
 
 ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
-include $(DEPS)
+include $(SRCDIR)/header.mk
 endif
 
 # `clean`: Clean obj and bin files
@@ -80,9 +75,8 @@ purge:clean
 	$(call $(RMDIR),$(GENDIR))
 	$(call $(RMDIR),$(OBJDIR))
 	$(call $(RM), $(call rwildcard,$(SRCDIR),*.mk))
-	$(call $(RM), $(call rwildcard,$(INCDIR),*.mk))
-	$(call $(RM), $(call rwildcard,modules/hUGEDriver,*.mk))
-	$(call $(RM), $(call rwildcard,modules/vgm2asm,*.mk))
+	$(call $(RM), $(call rwildcard,$(SRCDIR),*.vgm.asm))
+	$(call $(RM), $(call rwildcard,$(SRCDIR),*.uge.asm))
 	$(call $(RM), $(call rwildcard,$(INCDIR),*.mk))
 	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwf))
 	$(call $(RM), $(call rwildcard,$(RESDIR),*.vwflen))
@@ -152,13 +146,23 @@ $(INCDIR)/%.mk:$(INCDIR)/%.inc
 	$(call $(MKDIR),$(dir $@))
 	perl modules/mkutils/generate_dep.pl $^ $@
 
+$(SRCDIR)/%.mk:$(SRCDIR)/%.inc 
+	$(call $(MKDIR),$(dir $@))
+	perl modules/mkutils/generate_dep.pl $^ $@
+
 $(OBJDIR)/%.o:$(SRCDIR)/%.asm
+	$(call $(MKDIR),$(dir $@))
+	$(RGBASM) $(ASFLAGS) -o $@ $<
+
+$(OBJDIR)/%.o:$(INCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
 	$(RGBASM) $(ASFLAGS) -o $@ $<
 
 $(GENDIR)/charmap.inc:$(SRCDIR)/gb-vwf/vwf.asm
 	$(call $(MKDIR),$(GENDIR))
 	$(RGBASM) $(ASFLAGS) -DPRINT_CHARMAP $^ > $@
+
+VWFENCODER:= $(TOOLSDIR)/gb-vwf/font_encoder$(EXE)
 
 assets/%.vwf:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
@@ -168,17 +172,31 @@ assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $(@:.vwflen=.vwf)
 
-.SECONDEXPANSION:
-$(SRCDIR)/%.asm:$(SRCDIR)/%.vgm $$(wildcard $(SRCDIR)/%.vgm.meta)
-	python modules/vgm2asm/vgm2asm.py $(call $(CAT),$<.meta) -o $@ $<
+OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
 
 $(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm
 	$(call $(MKDIR),$(dir $@))
 	$(RGBASM) $(ASFLAGS) -Imodules/vgm2asm/ -o $@ $<
 
+.SECONDEXPANSION:
+$(SRCDIR)/%.vgm.asm:$(SRCDIR)/%.vgm $$(wildcard $(SRCDIR)/%.vgm.meta)
+	python modules/vgm2asm/vgm2asm.py $(call $(CAT),$<.meta) -o $@ $<
+
+OBJS+=$(OBJDIR)/hUGEDriver/hUGEDriver.o
+
 $(OBJDIR)/hUGEDriver/%.o:modules/hUGEDriver/%.asm
 	$(call $(MKDIR),$(dir $@))
 	$(RGBASM) $(ASFLAGS) -Imodules/hUGEDriver/ -o $@ $<
+
+$(OBJDIR)/%.uge.o:$(SRCDIR)/%.uge.asm
+	$(call $(MKDIR),$(dir $@))
+	$(RGBASM) $(ASFLAGS) -Imodules/hUGEDriver/include/ -o $@ $<
+
+.SECONDEXPANSION:
+$(SRCDIR)/%.uge.asm:$(SRCDIR)/%.uge $$(wildcard $(SRCDIR)/%.uge.meta)
+	$(TOOLSDIR)/hUGEDriver/uge2source$(EXE) $< $(basename $(notdir $<)) $(call $(CAT),$<.meta) $@ 
+
+$(OBJDIR)/gb-vwf/vwf.o: $(SRCDIR)/gb-vwf/vwf.asm $(VWF_CFG_FILE) $(VWF_CFG_FILE:.inc=.mk)
 
 # How to build a ROM.
 # Notice that the build date is always refreshed.

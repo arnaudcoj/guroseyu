@@ -1,8 +1,9 @@
 INCLUDE "include/hardware.inc/hardware.inc"
 INCLUDE "assets/charmap.inc"
 
-using "obj/audio.o"
-using "obj/assets/pipe_de_bois.o"
+using "src/gb-vwf/vwf.asm"
+using "src/audio.asm"
+using "src/assets/pipe_de_bois.uge.asm"
 
 setcharmap vwf
 

@@ -1,12 +1,13 @@
 INCLUDE "include/defines.inc"
 
-USING "obj/assets/build_date.o"
-USING "obj/main.o"
-USING "obj/rst.o"
-USING "obj/vblank.o"
-USING "obj/timer.o"
-USING "obj/audio.o"
-USING "obj/crash_handler.o"
+USING "src/assets/build_date.asm"
+USING "src/main.asm"
+USING "src/rst.asm"
+USING "src/misc.asm"
+USING "src/vblank.asm"
+USING "src/timer.asm"
+USING "src/audio.asm"
+USING "src/crash_handler.asm"
 
 SECTION "Header", ROM0[$100]
 

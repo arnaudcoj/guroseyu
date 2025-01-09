@@ -1,11 +1,10 @@
 include "include/hardware.inc/hardware.inc"
-include "modules/vgm2asm/sfxplayer.inc"
 
-; using "obj/vwf_demo.o"
-using "obj/assets/sound_effect1.o"
-using "obj/assets/sound_effect3.o"
-using "obj/assets/pipe_de_bois.o"
-using "obj/audio.o"
+; using "src/vwf_demo.asm"
+using "src/assets/sound_effect1.vgm.asm"
+using "src/assets/sound_effect3.vgm.asm"
+using "src/assets/pipe_de_bois.uge.asm"
+using "src/audio.asm"
 
 SECTION "Intro", ROMX
 

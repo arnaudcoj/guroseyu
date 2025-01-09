@@ -1,6 +1,6 @@
 include "include/hardware.inc/hardware.inc"
 
-USING "obj/audio.o"
+USING "src/audio.asm"
 	
 ; Used to setup timer in header
 ; NOTE : Set rTMA to $e0 when using CGB double speed !

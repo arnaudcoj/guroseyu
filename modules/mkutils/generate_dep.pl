@@ -28,38 +28,61 @@ open my $src_fh, '<', $source_file or die "Impossible d'ouvrir le fichier source
 # Ouvrir le fichier Makefile pour écriture
 open my $mk_fh, '>', $mk_file or die "Impossible d'ouvrir le fichier Makefile $mk_file: $!\n";
 
+my $guard = $mk_file;
+$guard =~ s/(\.|\/|\\)/_/g;
+$guard = uc($guard);
+print $mk_fh "ifndef $guard\n";
+print $mk_fh "$guard = 1\n\n";
+
 if (@ARGV == 3) {
     print $mk_fh "$obj_file: $source_file\n";
 }
 
-# Parcourir le fichier source ligne par ligne
-while (my $line = <$src_fh>) {
-    # Règle spéciale pour vwf
-	if($line =~ /^\s*font\s*(?:[^\s]*)\s*,\s*([^\s]*)\s*/i) {
-        my $file = $1;
-        my $file2 = "${1}len";
+if ($source_file !~ /\.uge.asm\z/) {
+    # Parcourir le fichier source ligne par ligne
+    while (my $line = <$src_fh>) {
+        # Règle spéciale pour vwf
+        if($line =~ /^\s*font\s*(?:[^\s]*)\s*,\s*([^\s]*)\s*/i) {
+            my $file = $1;
+            my $file2 = "${1}len";
 
-        print $mk_fh "$obj_file: $file $file2\n";
-        print $mk_fh "$file:\n";
-        print $mk_fh "$file2:\n";
-    }
-
-    # Rechercher les lignes avec include("fichier") ou incbin("fichier") ou using("fichier")
-    if ($line =~ /^\s*(?:(?:include|incbin|using)\s+(?:"([^"]*)"|\("([^"]*)"\))|(?:include|incbin|using)\((?:"([^"])*")\))\s*$/i) {
-        my $file = $1;
-
-        if ($file =~ /\{(?:[^\}]+)\}/i) {
-            $file = "\$$file";
+            print $mk_fh "$obj_file: $file $file2\n";
+            print $mk_fh "$file:\n";
+            print $mk_fh "$file2:\n";
         }
 
-        print $mk_fh "$obj_file: $file\n";
-        print $mk_fh "$file:\n";
+        # Rechercher les lignes avec include("fichier") ou incbin("fichier") ou using("fichier")
+        if ($line =~ /^\s*(?:(?:include|incbin|using)\s+(?:"([^"]*)"|\("([^"]*)"\))|(?:include|incbin|using)\((?:"([^"])*")\))\s*$/i) {
+            my $file = $1;
+
+            if ($file =~ /\{(?:[^\}]+)\}/i) {
+                $file = "\$$file";
+                print $mk_fh "include \$(subst .inc,.mk,$file)\n";
+            }
+
+            if ($file =~ /\.asm\z/) {
+                my $obj_file_2 = $file;
+                $obj_file_2 =~ s/^[^\/]*(?=\/)/obj/;
+                $obj_file_2 =~ s/\.asm/.o/;
+                print $mk_fh "$obj_file: $obj_file_2\n";
+            } else {
+                print $mk_fh "$obj_file: $file\n";
+            }
+            
+            if ($file =~ /^(?:src|include).*\.(?:asm|inc)/) {
+                my $include_mk = $file;
+                $include_mk =~ s/(?:\.asm|\.inc)\z/.mk/;
+                print $mk_fh "include $include_mk\n";
+            }
+        }
     }
 }
 
 if ($obj_file =~ /.o$/) {
-    print $mk_fh "OBJS+= $obj_file";
+    print $mk_fh "OBJS+= $obj_file\n\n";
 }
+
+print $mk_fh "endif";
 
 # Fermer les fichiers
 close $src_fh;
