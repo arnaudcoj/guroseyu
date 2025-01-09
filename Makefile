@@ -60,6 +60,8 @@ DEPS := $(filter-out include/hardware.mk,$(DEPS))
 
 OBJS:=$(OBJDIR)/hUGEDriver/hUGEDriver.o
 OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
+OBJS+=$(OBJDIR)/assets/sound_effect1.o
+OBJS+=$(OBJDIR)/assets/sound_effect3.o
 
 ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
 include $(DEPS)
@@ -163,6 +165,10 @@ assets/%.vwf:$(SRCDIR)/assets/%.png $(VWFENCODER)
 assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
 	$(call $(MKDIR),$(dir $@))
 	$(VWFENCODER) $< $(@:.vwflen=.vwf)
+
+#$(SRCDIR)/%.asm:$(SRCDIR)/%.vgm $$(wildcard $(SRCDIR)/%.vgm.meta)
+$(SRCDIR)/%.asm:$(SRCDIR)/%.vgm
+	python modules/vgm2asm/vgm2asm.py $(call $(CAT),$<.meta) -o $@ $<
 
 $(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm
 	$(call $(MKDIR),$(dir $@))

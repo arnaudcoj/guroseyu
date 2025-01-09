@@ -2,7 +2,8 @@ include "include/hardware.inc/hardware.inc"
 include "modules/vgm2asm/sfxplayer.inc"
 
 ; using "obj/vwf_demo.o"
-using "obj/beep.o"
+using "obj/assets/sound_effect1.o"
+using "obj/assets/sound_effect3.o"
 using "obj/assets/pipe_de_bois.o"
 using "obj/audio.o"
 
@@ -53,8 +54,8 @@ Loop:
 	jr z, .check_sfx_B ; skip if not pressed
 	
 	ld c, 127
-	ld b, BANK(sfx_Beep)
-	ld hl, sfx_Beep
+	ld b, BANK(sfx_sound_effect1)
+	ld hl, sfx_sound_effect1
 	call SFX_start
 
 .check_sfx_B
@@ -63,8 +64,8 @@ Loop:
 	jr z, Loop ; skip if not pressed
 	
 	ld c, 255
-	ld b, BANK(sfx_Beep3)
-	ld hl, sfx_Beep3
+	ld b, BANK(sfx_sound_effect3)
+	ld hl, sfx_sound_effect3
 	call SFX_start
 
 	jr Loop
