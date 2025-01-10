@@ -1,4 +1,4 @@
-include "include/hardware.inc/hardware.inc"
+include "include/hardware.inc"
 
 using "modules/hUGEDriver/hUGEDriver.asm"
 using "modules/vgm2asm/sfxplayer.asm"

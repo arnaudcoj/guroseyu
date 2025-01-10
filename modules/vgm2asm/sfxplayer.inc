@@ -1,4 +1,4 @@
-include "include/hardware.inc/hardware.inc"
+include "include/hardware.inc"
 
 ; setting SFX bank to this value stops the playback
 def SFX_STOP_BANK = $ff

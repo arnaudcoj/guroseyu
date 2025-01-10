@@ -1,4 +1,4 @@
-include "include/hardware.inc/hardware.inc"
+include "include/hardware.inc"
 
 USING "src/audio.asm"
 	

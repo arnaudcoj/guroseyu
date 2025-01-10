@@ -4,7 +4,7 @@ MODULES_VGM2ASM = 1
 OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
 $(OBJDIR)/vgm2asm/sfxplayer.o:
 
-$(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm
+$(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm include/hardware.inc
 	$(call $(MKDIR),$(dir $@))
 	$(RGBASM) $(ASFLAGS) -Imodules/vgm2asm/ -o $@ $<
 	

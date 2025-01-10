@@ -1,4 +1,4 @@
-INCLUDE "include/hardware.inc/hardware.inc"
+INCLUDE "include/hardware.inc"
 INCLUDE "assets/charmap.inc"
 
 using "modules/gb-vwf/vwf.asm"

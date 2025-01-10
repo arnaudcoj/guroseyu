@@ -1,4 +1,4 @@
-include "include/hardware.inc/hardware.inc"
+include "include/hardware.inc"
 
 ; using "src/vwf_demo.asm"
 using "src/assets/sound_effect1.vgm.asm"
