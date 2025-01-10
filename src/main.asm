@@ -31,6 +31,8 @@ Intro::
 	ld a, $77
 	ldh [rNR50], a
 
+	; jp VWFEntryPoint
+
 	ld b, BANK(pipe_de_bois)
 	ld hl, pipe_de_bois
 	call Music_init
@@ -68,5 +70,3 @@ Loop:
 	call SFX_start
 
 	jr Loop
-
-	; jp VWFEntryPoint

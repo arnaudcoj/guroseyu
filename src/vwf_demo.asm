@@ -1,7 +1,7 @@
 INCLUDE "include/hardware.inc/hardware.inc"
 INCLUDE "assets/charmap.inc"
 
-using "src/gb-vwf/vwf.asm"
+using "modules/gb-vwf/vwf.asm"
 using "src/audio.asm"
 using "src/assets/pipe_de_bois.uge.asm"
 

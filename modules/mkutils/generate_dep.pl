@@ -54,25 +54,28 @@ if ($source_file !~ /\.uge.asm\z/) {
         # Rechercher les lignes avec include("fichier") ou incbin("fichier") ou using("fichier")
         if ($line =~ /^\s*(?:(?:include|incbin|using)\s+(?:"([^"]*)"|\("([^"]*)"\))|(?:include|incbin|using)\((?:"([^"])*")\))\s*$/i) {
             my $file = $1;
-
-            if ($file =~ /\{(?:[^\}]+)\}/i) {
+            
+            if ($file =~ /^(modules\/[^\/]*)/) {
+                print $mk_fh "include $1.mk\n";
+            } elsif ($file =~ /\{(?:[^\}]+)\}/i) {
                 $file = "\$$file";
                 print $mk_fh "include \$(subst .inc,.mk,$file)\n";
-            }
-
-            if ($file =~ /\.asm\z/) {
+                print $mk_fh "$obj_file: $file\n";
+            } elsif ($file =~ /^(?:src|include).*\.asm\z/) {
                 my $obj_file_2 = $file;
                 $obj_file_2 =~ s/^[^\/]*(?=\/)/obj/;
                 $obj_file_2 =~ s/\.asm/.o/;
-                print $mk_fh "$obj_file: $obj_file_2\n";
-            } else {
-                print $mk_fh "$obj_file: $file\n";
-            }
-            
-            if ($file =~ /^(?:src|include).*\.(?:asm|inc)/) {
                 my $include_mk = $file;
                 $include_mk =~ s/(?:\.asm|\.inc)\z/.mk/;
+                print $mk_fh "$obj_file: $obj_file_2\n";
                 print $mk_fh "include $include_mk\n";
+            } elsif ($file =~ /^(?:src|include).*\.inc\z/) {
+                my $include_mk = $file;
+                $include_mk =~ s/(?:\.asm|\.inc)\z/.mk/;
+                print $mk_fh "$obj_file: $file\n";
+                print $mk_fh "include $include_mk\n";
+            } else {
+                print $mk_fh "$obj_file: $file\n";
             }
         }
     }

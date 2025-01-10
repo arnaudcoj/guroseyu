@@ -84,8 +84,7 @@ purge:clean
 
 purgeHARDER:purge
 	@echo HARDER!!!
-	$(call $(RMDIR), $(SRCDIR)/gb-vwf/target/)
-	$(call $(RMDIR), $(dir $(VWFENCODER)))
+	$(call $(RMDIR), modules/gb-vwf/target/)
 .PHONY:purge
 
 # `rebuild`: Build everything from scratch
@@ -158,46 +157,6 @@ $(OBJDIR)/%.o:$(INCDIR)/%.asm
 	$(call $(MKDIR),$(dir $@))
 	$(RGBASM) $(ASFLAGS) -o $@ $<
 
-$(GENDIR)/charmap.inc:$(SRCDIR)/gb-vwf/vwf.asm
-	$(call $(MKDIR),$(GENDIR))
-	$(RGBASM) $(ASFLAGS) -DPRINT_CHARMAP $^ > $@
-
-VWFENCODER:= $(TOOLSDIR)/gb-vwf/font_encoder$(EXE)
-
-assets/%.vwf:$(SRCDIR)/assets/%.png $(VWFENCODER)
-	$(call $(MKDIR),$(dir $@))
-	$(VWFENCODER) $< $@
-
-assets/%.vwflen:$(SRCDIR)/assets/%.png $(VWFENCODER)
-	$(call $(MKDIR),$(dir $@))
-	$(VWFENCODER) $< $(@:.vwflen=.vwf)
-
-OBJS+=$(OBJDIR)/vgm2asm/sfxplayer.o
-
-$(OBJDIR)/vgm2asm/%.o:modules/vgm2asm/%.asm
-	$(call $(MKDIR),$(dir $@))
-	$(RGBASM) $(ASFLAGS) -Imodules/vgm2asm/ -o $@ $<
-
-.SECONDEXPANSION:
-$(SRCDIR)/%.vgm.asm:$(SRCDIR)/%.vgm $$(wildcard $(SRCDIR)/%.vgm.meta)
-	python modules/vgm2asm/vgm2asm.py $(call $(CAT),$<.meta) -o $@ $<
-
-OBJS+=$(OBJDIR)/hUGEDriver/hUGEDriver.o
-
-$(OBJDIR)/hUGEDriver/%.o:modules/hUGEDriver/%.asm
-	$(call $(MKDIR),$(dir $@))
-	$(RGBASM) $(ASFLAGS) -Imodules/hUGEDriver/ -o $@ $<
-
-$(OBJDIR)/%.uge.o:$(SRCDIR)/%.uge.asm
-	$(call $(MKDIR),$(dir $@))
-	$(RGBASM) $(ASFLAGS) -Imodules/hUGEDriver/include/ -o $@ $<
-
-.SECONDEXPANSION:
-$(SRCDIR)/%.uge.asm:$(SRCDIR)/%.uge $$(wildcard $(SRCDIR)/%.uge.meta)
-	$(TOOLSDIR)/hUGEDriver/uge2source$(EXE) $< $(basename $(notdir $<)) $(call $(CAT),$<.meta) $@ 
-
-$(OBJDIR)/gb-vwf/vwf.o: $(SRCDIR)/gb-vwf/vwf.asm $(VWF_CFG_FILE) $(VWF_CFG_FILE:.inc=.mk)
-
 # How to build a ROM.
 # Notice that the build date is always refreshed.
 bin/%.${ROMEXT}:$(OBJS)
@@ -209,18 +168,10 @@ bin/%.${ROMEXT}:$(OBJS)
 	${RGBLINK} ${LDFLAGS} -m bin/$*.map -n bin/$*.sym -o $@ $(OBJS)
 	${RGBFIX} -v ${FIXFLAGS} $@
 
-$(VWFENCODER):$(SRCDIR)/gb-vwf/target/release/font_encoder$(EXE)
-	$(call $(MKDIR),$(dir $@))
-	$(call $(CP),$^,$@)
-
-# TODO ask to install rust and gcc/mingw if needed
-$(SRCDIR)/gb-vwf/target/release/font_encoder$(EXE):$(SRCDIR)/gb-vwf/font_encoder/Cargo.toml
-	cargo build --release --manifest-path=$^
-
 # By default, cloning the repo does not init submodules; if that happens, warn the user.
 # Note that the real paths aren't used!
 # Since RGBASM fails to find the files, it outputs the raw paths, not the actual ones.
-$(INCDIR)/hardware.inc/hardware.inc $(INCDIR)/rgbds-structs/structs.asm $(SRCDIR)/gb-vwf/vwf.asm:
+$(INCDIR)/hardware.inc/hardware.inc $(INCDIR)/rgbds-structs/structs.asm modules/gb-vwf/vwf.asm modules/hUGEDriver/hUGEDriver.asm modules/vgm2asm/sfxplayer.asm:
 	@echo '$@ is not present; have you initialized submodules?'
 	@echo 'Run `git submodule update --init`, then `make clean`, then `make` again.'
 	@echo 'Tip: to avoid this, use `git clone --recursive` next time!'
