@@ -1,4 +1,4 @@
-INCLUDE "include/hardware.inc/hardware.inc"
+INCLUDE "include/hardware.inc"
 
 
 ; Write a section definition to control where the VWF engine itself ends up;
