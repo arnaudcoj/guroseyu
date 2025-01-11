@@ -175,7 +175,7 @@ bin/%.${ROMEXT}:$(OBJS)
 # By default, cloning the repo does not init submodules; if that happens, warn the user.
 # Note that the real paths aren't used!
 # Since RGBASM fails to find the files, it outputs the raw paths, not the actual ones.
-modules/hardware.inc/hardware.inc $(INCDIR)/rgbds-structs/structs.asm modules/gb-vwf/vwf.asm modules/hUGEDriver/hUGEDriver.asm modules/vgm2asm/sfxplayer.asm:
+modules/hardware.inc/hardware.inc modules/rgbds-structs/structs.asm modules/gb-vwf/vwf.asm modules/hUGEDriver/hUGEDriver.asm modules/vgm2asm/sfxplayer.asm:
 	@echo '$@ is not present; have you initialized submodules?'
 	@echo 'Run `git submodule update --init`, then `make clean`, then `make` again.'
 	@echo 'Tip: to avoid this, use `git clone --recursive` next time!'

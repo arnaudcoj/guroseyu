@@ -3,7 +3,7 @@
 	url = https://github.com/gbdev/hardware.inc.git
 	ignore = untracked
 [submodule "src/include/rgbds-structs"]
-	path = include/rgbds-structs
+	path = modules/rgbds-structs
 	url = https://github.com/ISSOtm/rgbds-structs.git
 	ignore = untracked
 [submodule "src/gb-vwf"]
