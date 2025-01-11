@@ -41,19 +41,7 @@ Reset::
 	cpl
 	ld [wSFXPriority], a
 
-
-	; Wait for VBlank and turn LCD off
-.waitVBlank
-	ldh a, [rLY]
-	cp SCRN_Y
-	jr c, .waitVBlank
-	xor a
-	ldh [rLCDC], a
-	; Goal now: set up the minimum required to turn the LCD on again
-	; A big chunk of it is to make sure the VBlank handler doesn't crash
-
 	ld sp, wStackBottom
-
 	assert BANK(OAMDMA) != 0, "`OAMDMA` is in ROM0, please remove this write to `rROMB0`"
 	ld a, BANK(OAMDMA)
 	; No need to write bank number to HRAM, interrupts aren't active
@@ -106,17 +94,11 @@ Reset::
 	ld a, IEF_VBLANK | IEF_TIMER
 	ldh [rIE], a
 	xor a
-	ei ; Only takes effect after the following instruction
-	ldh [rIF], a ; Clears "accumulated" interrupts
 
 	; Init shadow regs
 	; xor a
 	ldh [hSCY], a
 	ldh [hSCX], a
-	ld a, LCDCF_ON | LCDCF_BGON
-	ldh [hLCDC], a
-	; And turn the LCD on!
-	ldh [rLCDC], a
 
 	; Clear OAM, so it doesn't display garbage
 	; This will get committed to hardware OAM after the end of the first
@@ -127,6 +109,9 @@ Reset::
 	rst MemsetSmall
 	ld a, h ; ld a, HIGH(wShadowOAM)
 	ldh [hOAMHigh], a
+
+	ei ; Only takes effect after the following instruction
+	ldh [rIF], a ; Clears "accumulated" interrupts
 
 	; `Intro`'s bank has already been loaded earlier
 	jp Intro
