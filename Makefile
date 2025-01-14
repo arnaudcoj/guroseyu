@@ -59,7 +59,7 @@ VWF_CFG_FILE:=$(INCDIR)/vwf_config.inc
 OBJS:=
 
 ifeq ($(filter clean purge dependencies,${MAKECMDGOALS}),)
-include $(SRCDIR)/header.mk
+include $(ENTRY:.asm=.mk)
 endif
 
 # `clean`: Clean obj and bin files
@@ -163,7 +163,7 @@ $(OBJDIR)/%.o:$(INCDIR)/%.asm
 
 # How to build a ROM.
 # Notice that the build date is always refreshed.
-bin/%.${ROMEXT}:$(OBJS)
+bin/%.${ROMEXT}:$(OBJS) project.mk
 	$(call $(MKDIR),$(OBJDIR))
 	${RGBASM} ${ASFLAGS} -o obj/build_date.o $(SRCDIR)/assets/build_date.asm
 

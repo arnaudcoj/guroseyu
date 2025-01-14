@@ -39,8 +39,8 @@ SRAMSIZE := 0x00
 ROMNAME := boilerplate
 ROMEXT  := gb
 
-# Main OBJ file
-MAINOBJ := obj/header.o
+# Starting ASM file
+ENTRY := src/header.asm
 
 # Compilation parameters, uncomment to apply, comment to cancel.
 # "Sensible defaults" are included.
