@@ -155,3 +155,13 @@ Memcpy::
 	dec b
 	jr nz, .loop
 	ret
+
+SECTION "Local Variables", HRAM
+
+DEF LOCALVAR = 0
+REPT 8
+_{d:LOCALVAR}::
+hLocalVar_{d:LOCALVAR}::db
+DEF LOCALVAR += 1
+ENDR
+PURGE LOCALVAR
