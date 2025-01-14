@@ -108,6 +108,11 @@ $(INCDIR)/hardware.inc:modules/hardware.inc/hardware.inc
 	$(call $(CP),$<,$@) 
 
 .SECONDEXPANSION:
+assets/%.map: $(SRCDIR)/assets/%.png $$(wildcard $(SRCDIR)/%.png.meta)
+	$(call $(MKDIR),$(dir $@))
+	${RGBGFX} $(call $(CAT),$<.meta) -t $@ $<
+
+.SECONDEXPANSION:
 assets/%.2bpp: $(SRCDIR)/assets/%.png $$(wildcard $(SRCDIR)/%.png.meta)
 	$(call $(MKDIR),$(dir $@))
 	${RGBGFX} $(call $(CAT),$<.meta) -o $@ $<
