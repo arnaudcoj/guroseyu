@@ -99,6 +99,8 @@ Reset::
 	; xor a
 	ldh [hSCY], a
 	ldh [hSCX], a
+	ld a, [rLCDC]
+	ldh [hLCDC], a
 
 	; Clear OAM, so it doesn't display garbage
 	; This will get committed to hardware OAM after the end of the first
@@ -112,6 +114,8 @@ Reset::
 
 	ei ; Only takes effect after the following instruction
 	ldh [rIF], a ; Clears "accumulated" interrupts
+
+	rst WaitVBlank
 
 	; `Intro`'s bank has already been loaded earlier
 	jp Intro
